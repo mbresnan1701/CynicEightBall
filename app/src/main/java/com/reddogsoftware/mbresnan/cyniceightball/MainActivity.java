@@ -12,15 +12,15 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements AccelerometerListener {
     ImageButton micButton;
     TextView displayText;
     SpeechRecognizer speechRecognizer;
@@ -36,12 +36,16 @@ public class MainActivity extends AppCompatActivity {
             this.getSupportActionBar().hide();
         }
         catch (NullPointerException e){}
-
+        if (AccelerometerManager.isSupported(this)) {
+            AccelerometerManager.startListening(this);
+        }
         micButton = findViewById(R.id.micButton);
         displayText = findViewById(R.id.displayText);
 
         micButton.setOnClickListener(onClick);
 
+
+        // Request necessary permissions
         // Here, thisActivity is the current activity
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.RECORD_AUDIO)
@@ -69,8 +73,38 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onAccelerationChanged(float x, float y, float z) {
+
+    }
+
+    @Override
+    public void onShake(float force) {
+        displayText.setText("YOU SUCK M8");
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        //Check device supported Accelerometer sensor or not
+        if (AccelerometerManager.isListening()) {
+
+            //Start Accelerometer Listening
+            AccelerometerManager.stopListening();
+
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (AccelerometerManager.isListening()) {
+            AccelerometerManager.stopListening();
+        }
+    }
+
     private View.OnClickListener onClick = v -> {
-        Log.d("HELLO", "ONCLICK HIT");
         micButton.setImageResource(R.drawable.ic_mic_active);
         initSpeechRecognizer();
     };
@@ -121,7 +155,6 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onEndOfSpeech() {
-            Log.d("HELLO", "end of speech");
             micButton.setImageResource(R.drawable.ic_mic_button);
             displayText.setText(R.string.display_shake);
         }
@@ -159,3 +192,5 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 }
+
+
