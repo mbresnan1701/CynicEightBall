@@ -6,5 +6,6 @@
     <color name="ball_gradient_start">#0a0a0a</color>
     <color name="ball_gradient_end">#1e1e1e</color>
     <color name="ball_ring_grey">#535050</color>
+    <color name="ball_inner_display">#6821ea</color>
 
 </resources>
