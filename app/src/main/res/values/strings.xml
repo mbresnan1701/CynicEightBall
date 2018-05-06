@@ -2,6 +2,6 @@
     <string name="app_name">CynicEightBall</string>
     <string name="display_default">Hit the button below to ask me a question</string>
     <string name="display_shake">Shake me to reveal your fortune</string>
-
     <string name="display_desc">display</string>
+    <string name="default_fortune">The developer is bad</string>
 </resources>

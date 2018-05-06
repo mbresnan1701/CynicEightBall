@@ -3,6 +3,7 @@ package com.reddogsoftware.mbresnan.cyniceightball;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.TypedArray;
 import android.os.Handler;
 import android.os.Looper;
 import android.speech.RecognitionListener;
@@ -15,9 +16,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import java.util.ArrayList;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements AccelerometerListener {
@@ -25,6 +23,7 @@ public class MainActivity extends AppCompatActivity implements AccelerometerList
     TextView displayText;
     SpeechRecognizer speechRecognizer;
     Intent speechIntent;
+    TypedArray fortunes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,14 +35,13 @@ public class MainActivity extends AppCompatActivity implements AccelerometerList
             this.getSupportActionBar().hide();
         }
         catch (NullPointerException e){}
-        if (AccelerometerManager.isSupported(this)) {
-            AccelerometerManager.startListening(this);
-        }
+
         micButton = findViewById(R.id.micButton);
         displayText = findViewById(R.id.displayText);
 
         micButton.setOnClickListener(onClick);
 
+        fortunes = getResources().obtainTypedArray(R.array.fortunes_array);
 
         // Request necessary permissions
         // Here, thisActivity is the current activity
@@ -80,7 +78,9 @@ public class MainActivity extends AppCompatActivity implements AccelerometerList
 
     @Override
     public void onShake(float force) {
-        displayText.setText("YOU SUCK M8");
+        stopAccelerometerListening();
+        int fortuneChoice = (int) (Math.random() * fortunes.length());
+        displayText.setText(fortunes.getString(fortuneChoice));
     }
 
     @Override
@@ -109,6 +109,18 @@ public class MainActivity extends AppCompatActivity implements AccelerometerList
         initSpeechRecognizer();
     };
 
+    public void startAccelerometerListening() {
+        if (AccelerometerManager.isSupported(this)) {
+            AccelerometerManager.startListening(this);
+        }
+    }
+
+    public void stopAccelerometerListening() {
+        if (AccelerometerManager.isSupported(this)) {
+            AccelerometerManager.stopListening();
+        }
+    }
+
     private void initSpeechRecognizer() {
 
         // Create the speech recognizer and set the listener
@@ -135,28 +147,23 @@ public class MainActivity extends AppCompatActivity implements AccelerometerList
     RecognitionListener recognitionListener = new RecognitionListener() {
 
         @Override
-        public void onReadyForSpeech(Bundle params) {
-
-        }
+        public void onReadyForSpeech(Bundle params) {}
 
         @Override
-        public void onBeginningOfSpeech() {
-        }
+        public void onBeginningOfSpeech() {}
 
         @Override
-        public void onRmsChanged(float rmsdB) {
-
-        }
+        public void onRmsChanged(float rmsdB) {}
 
         @Override
-        public void onBufferReceived(byte[] buffer) {
-
-        }
+        public void onBufferReceived(byte[] buffer) {}
 
         @Override
         public void onEndOfSpeech() {
+            speechRecognizer.stopListening();
             micButton.setImageResource(R.drawable.ic_mic_button);
             displayText.setText(R.string.display_shake);
+            startAccelerometerListening();
         }
 
         @Override
@@ -174,22 +181,13 @@ public class MainActivity extends AppCompatActivity implements AccelerometerList
         }
 
         @Override
-        public void onResults(Bundle bundle) {
-
-            // it returns 5 results as default.
-            ArrayList<String> results = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-
-        }
+        public void onResults(Bundle bundle) {}
 
         @Override
-        public void onPartialResults(Bundle partialResults) {
-
-        }
+        public void onPartialResults(Bundle partialResults) {}
 
         @Override
-        public void onEvent(int eventType, Bundle params) {
-
-        }
+        public void onEvent(int eventType, Bundle params) {}
     };
 }
 
