@@ -13,7 +13,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
@@ -127,9 +126,7 @@ public class MainActivity extends AppCompatActivity implements AccelerometerList
     @Override
     public void onShake(float force) {
         if (isReadyForShake) {
-            Log.d("HELLO", "SHAKE " + force);
             int fortuneChoice = (int) (Math.random() * fortunes.length());
-//            displayText.setAlpha(0.0f);
             displayText.setText(fortunes.getString(fortuneChoice));
             fadeIn.setDuration(3000);
             displayText.startAnimation(fadeIn);
@@ -150,8 +147,9 @@ public class MainActivity extends AppCompatActivity implements AccelerometerList
         listen();
     }
 
+    // HEY! LISTEN!
+    // NO! SHUT UP NAVI!
     public void listen() {
-
         // startListening should be called on Main thread
         Handler mainHandler = new Handler(Looper.getMainLooper());
         Runnable myRunnable = () -> speechRecognizer.startListening(speechIntent);
