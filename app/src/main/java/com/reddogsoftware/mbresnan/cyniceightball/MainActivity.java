@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity implements AccelerometerList
     Intent speechIntent;
     TypedArray fortunes;
     Boolean isReadyForShake = false;
+    Boolean hasGoneBackground = false;
 
     final Animation fadeIn = new AlphaAnimation(0.0f, 1.0f);
 
@@ -83,10 +84,19 @@ public class MainActivity extends AppCompatActivity implements AccelerometerList
         }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(hasGoneBackground) {
+            startAccelerometerListening();
+            hasGoneBackground = false;
+        }
+    }
 
     @Override
     public void onStop() {
         super.onStop();
+        hasGoneBackground = true;
         stopAccelerometerListening();
     }
 
