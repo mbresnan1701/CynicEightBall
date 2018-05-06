@@ -13,6 +13,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -24,6 +25,7 @@ public class MainActivity extends AppCompatActivity implements AccelerometerList
     SpeechRecognizer speechRecognizer;
     Intent speechIntent;
     TypedArray fortunes;
+    Boolean isReadyForShake = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,20 +38,27 @@ public class MainActivity extends AppCompatActivity implements AccelerometerList
         }
         catch (NullPointerException e){}
 
+        // Grab view we'll need
         micButton = findViewById(R.id.micButton);
         displayText = findViewById(R.id.displayText);
 
+        // Add onclick for the mic button
         micButton.setOnClickListener(onClick);
 
+        // Grab fortunes from res file
         fortunes = getResources().obtainTypedArray(R.array.fortunes_array);
 
+        // Create the speech recognizer and set the listener
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+        speechRecognizer.setRecognitionListener(recognitionListener);
+
+        startAccelerometerListening();
+
         // Request necessary permissions
-        // Here, thisActivity is the current activity
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.RECORD_AUDIO)
                 != PackageManager.PERMISSION_GRANTED) {
 
-            // Permission is not granted
             // Should we show an explanation?
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                     Manifest.permission.RECORD_AUDIO)) {
@@ -71,44 +80,30 @@ public class MainActivity extends AppCompatActivity implements AccelerometerList
         }
     }
 
-    @Override
-    public void onAccelerationChanged(float x, float y, float z) {
-
-    }
-
-    @Override
-    public void onShake(float force) {
-        stopAccelerometerListening();
-        int fortuneChoice = (int) (Math.random() * fortunes.length());
-        displayText.setText(fortunes.getString(fortuneChoice));
-    }
 
     @Override
     public void onStop() {
         super.onStop();
-
-        //Check device supported Accelerometer sensor or not
-        if (AccelerometerManager.isListening()) {
-
-            //Start Accelerometer Listening
-            AccelerometerManager.stopListening();
-
-        }
+        stopAccelerometerListening();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (AccelerometerManager.isListening()) {
-            AccelerometerManager.stopListening();
-        }
+        stopAccelerometerListening();
     }
 
+    /**
+     * On click for the mic button. Start the speech recognition.
+     */
     private View.OnClickListener onClick = v -> {
         micButton.setImageResource(R.drawable.ic_mic_active);
         initSpeechRecognizer();
     };
 
+    /**
+     * Methods dealing with the accelerometer feature
+     */
     public void startAccelerometerListening() {
         if (AccelerometerManager.isSupported(this)) {
             AccelerometerManager.startListening(this);
@@ -121,11 +116,23 @@ public class MainActivity extends AppCompatActivity implements AccelerometerList
         }
     }
 
-    private void initSpeechRecognizer() {
+    @Override
+    public void onAccelerationChanged(float x, float y, float z) {}
 
-        // Create the speech recognizer and set the listener
-        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this.getApplicationContext());
-        speechRecognizer.setRecognitionListener(recognitionListener);
+    @Override
+    public void onShake(float force) {
+        if (isReadyForShake) {
+            Log.d("HELLO", "SHAKE " + force);
+            int fortuneChoice = (int) (Math.random() * fortunes.length());
+            displayText.setText(fortunes.getString(fortuneChoice));
+            isReadyForShake = false;
+        }
+    }
+
+    /**
+     * Methods dealing with the speech recognition feature
+     */
+    private void initSpeechRecognizer() {
 
         // Create the intent with ACTION_RECOGNIZE_SPEECH
         speechIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -143,7 +150,7 @@ public class MainActivity extends AppCompatActivity implements AccelerometerList
         mainHandler.post(myRunnable);
     }
 
-    // This should be it's own class, but I'm lazy
+    // This should be in it's own class, but I'm lazy
     RecognitionListener recognitionListener = new RecognitionListener() {
 
         @Override
@@ -163,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements AccelerometerList
             speechRecognizer.stopListening();
             micButton.setImageResource(R.drawable.ic_mic_button);
             displayText.setText(R.string.display_shake);
-            startAccelerometerListening();
+            isReadyForShake = true;
         }
 
         @Override
@@ -175,7 +182,6 @@ public class MainActivity extends AppCompatActivity implements AccelerometerList
             // It is not recommended by Google to listen continuously user input, obviously it drains the battery as well,
             // but for now let's ignore this warning
             if ((errorCode == SpeechRecognizer.ERROR_NO_MATCH) || (errorCode == SpeechRecognizer.ERROR_SPEECH_TIMEOUT)) {
-
                 listen();
             }
         }

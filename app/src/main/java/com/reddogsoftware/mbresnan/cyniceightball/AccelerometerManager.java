@@ -5,7 +5,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.widget.Toast;
 
 import java.util.List;
 
@@ -173,7 +172,6 @@ public class AccelerometerManager {
                 if (timeDiff > 0) {
 
                     force = Math.abs(x + y + z - lastX - lastY - lastZ);
-
                     if (Float.compare(force, threshold) > 0) {
 
                         if (now - lastShake >= interval) {
