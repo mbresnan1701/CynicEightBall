@@ -15,6 +15,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import java.util.Locale;
@@ -26,6 +28,8 @@ public class MainActivity extends AppCompatActivity implements AccelerometerList
     Intent speechIntent;
     TypedArray fortunes;
     Boolean isReadyForShake = false;
+
+    final Animation fadeIn = new AlphaAnimation(0.0f, 1.0f);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,6 +97,7 @@ public class MainActivity extends AppCompatActivity implements AccelerometerList
         stopAccelerometerListening();
     }
 
+
     /**
      * On click for the mic button. Start the speech recognition.
      */
@@ -124,7 +129,10 @@ public class MainActivity extends AppCompatActivity implements AccelerometerList
         if (isReadyForShake) {
             Log.d("HELLO", "SHAKE " + force);
             int fortuneChoice = (int) (Math.random() * fortunes.length());
+//            displayText.setAlpha(0.0f);
             displayText.setText(fortunes.getString(fortuneChoice));
+            fadeIn.setDuration(3000);
+            displayText.startAnimation(fadeIn);
             isReadyForShake = false;
         }
     }
